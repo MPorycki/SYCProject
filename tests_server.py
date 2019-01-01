@@ -21,12 +21,11 @@ def test_func_5():
 
 
 def test_func_1_2():
-    klient = klientRaspberry()
     # test of receiving data and sending to server
     for i in range(11):
-        klient.receive_arduino_data(test_data_entry)
+        klientRaspberry.receive_arduino_data(test_data_entry)
     # test of obstacle handling
-    klient.handle_obstacle()
+    klientRaspberry.handle_obstacle()
 
 
 def perform_tests():

@@ -16,7 +16,7 @@ Dodatkowe
 1-5 completed, revised, tests prepared
 """
 import datetime
-import serial
+# import serial
 import socket
 
 
@@ -25,14 +25,9 @@ stored_data = []
 #ser = serial.Serial('/dev/ttyACM0', 9600) # TODO fix AttributeError: module 'serial' has no attribute 'Serial'
 robot_id = None
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-address = ("192.168.56.1", 5002)
+server_address = ("192.168.56.1", 5002)
+address = ("192.168.8.127", 5002)
 sock.bind(address)
-
-
-def __init__():
-    global robot_id
-    robot_id = generate_id()
-    print('Robot id is {}'.format(robot_id))
 
 
 def listen_to_server():
@@ -74,7 +69,7 @@ def server_connect_and_send(data_to_send):
         data_to_send = robo_id + ' ' + data_to_send
     else:
         data_to_send = "None " + data_to_send
-    sock.sendto(str.encode(data_to_send), address)
+    sock.sendto(str.encode(data_to_send), server_address)
 
 
 def send_data():
@@ -95,6 +90,7 @@ def handle_obstacle():
     server_connect_and_send(message)
 
 
+robot_id = generate_id()
 if __name__ == '__main__':
     while True:
         #read_serial = ser.readline()

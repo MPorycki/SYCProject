@@ -10,8 +10,8 @@ import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-address = ("192.168.43.112", 5002)
-# sock.bind(address)
+address = ("192.168.56.1", 5002)
+sock.bind(address)
 stored_data_template = {'TIMESTAMP': [], 'LIGHT': [], 'TEMP': [], 'PRESSURE': []}
 robot = {}
 internal_password = 'e1695548-abb9-4b79-8f24-392a1807666f'
@@ -76,7 +76,7 @@ def send_response(message, recipient_ip):
 if __name__ == '__main__':
     print('Serwer aktywny. Nasluchuje...')
     while True:
-        data, return_address = sock.recvfrom(1024)
+        data, return_address = sock.recvfrom(512)
         client_input = data.decode('utf-8').split(' ')
         print('Received {}'.format(client_input))
         request = client_input[1]
