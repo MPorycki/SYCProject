@@ -10,7 +10,7 @@ import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-address = ("192.168.56.1", 5002)
+address = ("192.168.8.110", 5002)
 sock.bind(address)
 stored_data_template = {'TIMESTAMP': [], 'LIGHT': [], 'TEMP': [], 'PRESSURE': []}
 robot = {}
@@ -58,15 +58,16 @@ def receive_data(received_data, input_robot_id):
     if input_robot_id not in robot.keys():
         robot[input_robot_id] = copy.deepcopy(stored_data_template)
     for record in received_data:
-        inputs = record.split(';')
-        timestamp = inputs[0] + ' ' + inputs[1]
-        light = inputs[2]
-        temp = inputs[3]
-        pressure = inputs[4]
-        robot[input_robot_id]['TIMESTAMP'].append(timestamp)
-        robot[input_robot_id]['LIGHT'].append(light)
-        robot[input_robot_id]['TEMP'].append(temp)
-        robot[input_robot_id]['PRESSURE'].append(pressure)
+        if len(record) > 0:
+            inputs = record.split(';')
+            timestamp = inputs[0] + ' ' + inputs[1]
+            light = inputs[2]
+            temp = inputs[3]
+            pressure = inputs[4]
+            robot[input_robot_id]['TIMESTAMP'].append(timestamp)
+            robot[input_robot_id]['LIGHT'].append(light)
+            robot[input_robot_id]['TEMP'].append(temp)
+            robot[input_robot_id]['PRESSURE'].append(pressure)
 
 
 def send_response(message, recipient_ip):
@@ -76,7 +77,7 @@ def send_response(message, recipient_ip):
 if __name__ == '__main__':
     print('Serwer aktywny. Nasluchuje...')
     while True:
-        data, return_address = sock.recvfrom(512)
+        data, return_address = sock.recvfrom(1024)
         client_input = data.decode('utf-8').split(' ')
         print('Received {}'.format(client_input))
         request = client_input[1]
@@ -96,14 +97,16 @@ if __name__ == '__main__':
             except Exception:
                 output = 'Unknown Error'
             if internal_request == 'data':
-                data = client_input[3:]
-                receive_data(data, robot_id)
+                data_to_receive = client_input[3:]
+                receive_data(data_to_receive, robot_id)
                 output = '1'
             elif internal_request == 'generate':
                 output = str(generate_id())
-
+        elif 'An' in request:
+            print("Przeszkoda")
         else:
             output = 'Wrong input'
         # DEBUG
         print("Sending {} to {}".format(output, return_address))
         send_response(output, return_address)
+        output = ''
