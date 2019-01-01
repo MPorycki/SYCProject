@@ -19,13 +19,12 @@ import datetime
 # import serial
 import socket
 
-
 internal_password = 'e1695548-abb9-4b79-8f24-392a1807666f'
 stored_data = []
-#ser = serial.Serial('/dev/ttyACM0', 9600) # TODO fix AttributeError: module 'serial' has no attribute 'Serial'
+# ser = serial.Serial('/dev/ttyACM0', 9600) # TODO fix AttributeError: module 'serial' has no attribute 'Serial'
 robot_id = None
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ("192.168.56.1", 5002)
+server_address = ("192.168.8.110", 5002)
 address = ("192.168.8.127", 5002)
 sock.bind(address)
 
@@ -69,6 +68,7 @@ def server_connect_and_send(data_to_send):
         data_to_send = robo_id + ' ' + data_to_send
     else:
         data_to_send = "None " + data_to_send
+    print("Sending data")
     sock.sendto(str.encode(data_to_send), server_address)
 
 
@@ -78,6 +78,7 @@ def send_data():
         data += element + ' '
     server_connect_and_send(data)
     response = listen_to_server()
+    print("Otrzynalem {}".format(response))
     if response != '1':
         send_data()
     else:
@@ -85,20 +86,20 @@ def send_data():
 
 
 def handle_obstacle():
-    timestamp = str(datetime.datetime.now())
-    message = 'An obstacle has occurred at {}'.format(timestamp)
+    timestamp = str(datetime.datetime.now()).replace(' ', '-')
+    message = 'An-obstacle-has-occurred-at-{}'.format(timestamp)
     server_connect_and_send(message)
 
 
 robot_id = generate_id()
 if __name__ == '__main__':
     while True:
-        #read_serial = ser.readline()
+        # read_serial = ser.readline()
         print("Data read")
-        #input = read_serial.split(';')
+        # input = read_serial.split(';')
         input = ''
         if input[0] == 'przeszkoda':
             handle_obstacle()
         else:
             pass
-            #receive_arduino_data(read_serial)
+            # receive_arduino_data(read_serial)

@@ -1,8 +1,9 @@
 import klientRaspberry as klient
 
+test_data = '19-12-2018;15:25:31;1;2;3'
+
 
 def test_func_1():
-    test_data = '19-12-2018;15:25:31;1;2;3'
     klient.receive_arduino_data(test_data)
     print(klient.stored_data)
     klient.reset_data()
@@ -13,10 +14,11 @@ def test_func_2_and_3():
     """
     Active server needed
     """
-    test_data = '19-12-2018;15:25:31;1;2;3'
-    for i in range(10):
+    # test of receiving data and sending to server
+    for i in range(11):
         klient.receive_arduino_data(test_data)
-    print(klient.stored_data)
+    # test of obstacle handling
+    klient.handle_obstacle()
 
 
 def test_func_4():
@@ -24,7 +26,7 @@ def test_func_4():
 
 
 def test_func_5():
-    return klient.get_robot_id()
+    print(klient.get_robot_id())
 
 
 def perform_tests():
@@ -34,6 +36,8 @@ def perform_tests():
     test_func_4()
     print('Test_func_5:\n')
     test_func_5()
+    print('Test_func_2_3:\n')
+    test_func_2_and_3()
 
 
 if __name__ == '__main__':
