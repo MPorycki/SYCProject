@@ -29,6 +29,12 @@ address = ("192.168.56.1", 5002)
 sock.bind(address)
 
 
+def __init__():
+    global robot_id
+    robot_id = generate_id()
+    print('Robot id is {}'.format(robot_id))
+
+
 def listen_to_server():
     data, addr = sock.recvfrom(1024)
     server_input = data.decode('utf-8')
@@ -51,6 +57,7 @@ def get_robot_id():
 def reset_data():
     # TODO how much data can I store on the robot (additional task no.10)
     global stored_data
+    print("Data sent and reset")
     stored_data = []
 
 
@@ -89,12 +96,13 @@ def handle_obstacle():
 
 
 if __name__ == '__main__':
-    robot_id = generate_id()
     while True:
         #read_serial = ser.readline()
         print("Data read")
-        input = read_serial.split(';')
+        #input = read_serial.split(';')
+        input = ''
         if input[0] == 'przeszkoda':
             handle_obstacle()
         else:
-            receive_arduino_data(read_serial)
+            pass
+            #receive_arduino_data(read_serial)

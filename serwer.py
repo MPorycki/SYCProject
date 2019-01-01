@@ -78,6 +78,7 @@ if __name__ == '__main__':
     while True:
         data, return_address = sock.recvfrom(1024)
         client_input = data.decode('utf-8').split(' ')
+        print('Received {}'.format(client_input))
         request = client_input[1]
         robot_id = client_input[0]
         # TODO: refactor it using getAttr?
@@ -104,6 +105,5 @@ if __name__ == '__main__':
         else:
             output = 'Wrong input'
         # DEBUG
-        print(output)
-        print(return_address)
+        print("Sending {} to {}".format(output, return_address))
         send_response(output, return_address)
