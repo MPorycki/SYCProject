@@ -9,9 +9,9 @@ Co robi klientRaspberry:
 Dodatkowe
 6. Nasluchiwanie polecen z centrali
 7. Wykonywanie polecen z centrali (COMPLETED, REVISED, TESTED)
-8. Wyslanie do arduino komendy powrot
-9. Wyslanie do arduino info o zmianie charakterystyki pomiarow
-10. Wyslanie wszystkich pomiarow ponownie
+8. Wyslanie do arduino komendy powrot (COMPLETED, REVISED, TESTED)
+9. Wyslanie do arduino info o zmianie charakterystyki pomiarow (COMPLETED, REVISED, TESTED)
+10. Wyslanie wszystkich pomiarow ponownie (COMPLETED, RESVISED)
 26.12 todo:
 1-5 completed, revised, tests prepared
 """
@@ -50,17 +50,10 @@ def get_robot_id():
     return robot_id
 
 
-def reset_data():
-    # TODO how much data can I store on the robot (additional task no.10)
-    global stored_data
-    print("Data sent and reset")
-    stored_data = []
-
-
 def receive_arduino_data(input_data):
     stored_data.append(input_data)
-    if len(stored_data) >= 10:
-        send_data()
+    if len(stored_data) % 10 == 0:
+        send_data(send_all_data=False)
 
 
 def server_connect_and_send(data_to_send):
@@ -74,22 +67,24 @@ def server_connect_and_send(data_to_send):
     sock.sendto(str.encode(data_to_send), server_address)
 
 
-def send_data():
+def send_data(send_all_data: bool):
     data = 'e1695548-abb9-4b79-8f24-392a1807666f data '
-    for element in stored_data:
+    if send_all_data:
+        to_send = stored_data
+    else:
+        to_send = stored_data[-10:]
+    for element in to_send:
         data += element + ' '
     server_connect_and_send(data)
     response = listen_to_server()
-    print("Otrzynalem {}".format(response))
+    print("Otrzymalem {}".format(response))
     if response != '1':
-        send_data()
-    else:
-        reset_data()
+        send_data(send_all_data=False)
 
 
 def send_request_to_arduino(message):
     # DEBUG without Arduino present:
-    print ('Wyslalem do Arduino {}'.format(message))
+    print('Wyslalem do Arduino {}'.format(message))
     # ser.write(message)
 
 
@@ -99,8 +94,9 @@ def handle_server_request(server_command):
     if server_command == 'return':
         send_request_to_arduino('r')
         server_connect_and_send('Returning-to-base')
-    else:
-        if received_input[0] == 'parameters':
+    elif server_command == 'send_all':
+        send_data(send_all_data=True)
+    elif received_input[0] == 'parameters':
             send_request_to_arduino('p' + ';' + received_input[1] + ';' + received_input[2])
             server_connect_and_send(
                 'Interval change to {} and mission length to {}'.format(received_input[1],
@@ -119,12 +115,12 @@ if __name__ == '__main__':
         # read_serial = ser.readline()
         print("Arduino data read")
         # input = read_serial.split(';')
-        input = ''
+        arduino_input = ''
         # jak nie czekac na to w nieskonczonosc?
         server_input = listen_to_server()
         if server_input is not None:
             handle_server_request(server_input)
-        if input[0] == 'przeszkoda':
+        if arduino_input[0] == 'przeszkoda':
             handle_obstacle()
         else:
             pass

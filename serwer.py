@@ -55,7 +55,7 @@ def get_pressure(requested_robot_id):
 
 
 def receive_data(received_data, input_robot_id):
-    if input_robot_id not in robot.keys():
+    if input_robot_id not in robot.keys() or len(received_data) > 10:
         robot[input_robot_id] = copy.deepcopy(stored_data_template)
     for record in received_data:
         if len(record) > 0:
