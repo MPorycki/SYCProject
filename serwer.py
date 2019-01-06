@@ -10,7 +10,6 @@ import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-# TODO optional - find a way to get the IP address automatically - although it might not work
 address = ("192.168.8.110", 5002)
 sock.bind(address)
 stored_data_template = {'TIMESTAMP': [], 'LIGHT': [], 'TEMP': [], 'PRESSURE': []}
@@ -74,7 +73,7 @@ def receive_data(received_data, input_robot_id):
 def send_response(message, recipient_ip):
     sock.sendto(str.encode(message), recipient_ip)
 
-
+# TODO refactor to not look that ugly
 if __name__ == '__main__':
     print('Serwer aktywny. Nasluchuje...')
     while True:

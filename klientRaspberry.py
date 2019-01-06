@@ -8,7 +8,7 @@ Co robi klientRaspberry:
 6. Wyslanie info do Arduino ze koniec misji i wracamy (stop pomiary)
 Dodatkowe
 6. Nasluchiwanie polecen z centrali
-7. Wykonywanie polecen z centrali
+7. Wykonywanie polecen z centrali (COMPLETED, REVISED, TESTED)
 8. Wyslanie do arduino komendy powrot
 9. Wyslanie do arduino info o zmianie charakterystyki pomiarow
 10. Wyslanie wszystkich pomiarow ponownie
@@ -16,16 +16,18 @@ Dodatkowe
 1-5 completed, revised, tests prepared
 """
 import datetime
-# import serial
 import socket
+
+# import serial
 
 internal_password = 'e1695548-abb9-4b79-8f24-392a1807666f'
 stored_data = []
-# ser = serial.Serial('/dev/ttyACM0', 9600) # TODO fix AttributeError: module 'serial' has no attribute 'Serial'
+# ser = serial.Serial('/dev/ttyACM0', 9600) # TODO fix AttributeError: module 'serial' has no
+# attribute 'Serial'
 robot_id = None
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_address = ("192.168.8.110", 5002)
-address = ("192.168.8.127", 5002)
+address = ("192.168.8.110", 5002)
 sock.bind(address)
 
 
@@ -85,6 +87,26 @@ def send_data():
         reset_data()
 
 
+def send_request_to_arduino(message):
+    # DEBUG without Arduino present:
+    print ('Wyslalem do Arduino {}'.format(message))
+    # ser.write(message)
+
+
+def handle_server_request(server_command):
+    # form of data sent from server: parameters interval_value missionLength_value
+    received_input = server_command.split(' ')
+    if server_command == 'return':
+        send_request_to_arduino('r')
+        server_connect_and_send('Returning-to-base')
+    else:
+        if received_input[0] == 'parameters':
+            send_request_to_arduino('p' + ';' + received_input[1] + ';' + received_input[2])
+            server_connect_and_send(
+                'Interval change to {} and mission length to {}'.format(received_input[1],
+                                                                        received_input[2]))
+
+
 def handle_obstacle():
     timestamp = str(datetime.datetime.now()).replace(' ', '-')
     message = 'An-obstacle-has-occurred-at-{}'.format(timestamp)
@@ -95,9 +117,13 @@ robot_id = generate_id()
 if __name__ == '__main__':
     while True:
         # read_serial = ser.readline()
-        print("Data read")
+        print("Arduino data read")
         # input = read_serial.split(';')
         input = ''
+        # jak nie czekac na to w nieskonczonosc?
+        server_input = listen_to_server()
+        if server_input is not None:
+            handle_server_request(server_input)
         if input[0] == 'przeszkoda':
             handle_obstacle()
         else:
