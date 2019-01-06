@@ -1,15 +1,16 @@
 """
 Co robi serwer:
-1. Odbiera dane od robota (COMPLETED, REVISED, TESTED(locally))
-2. Zapisuje dane od robota na dysku (COMPLETED, REVISED, TESTED(locally))
+1. Odbiera dane od robota (COMPLETED, REVISED, TESTED)
+2. Zapisuje dane od robota na dysku (COMPLETED, REVISED, TESTED)
 3. Generuje ID dla robota (COMPLETED, REVISED, TESTED)
-4. Wysyla dla robota potwierdzenie otrzymania danych (COMPLETED, REVISED, TESTED(locally))
-5. Zwraca dla klienta info o danym robocie (COMPLETED, REVISED, TESTED(locally)
+4. Wysyla dla robota potwierdzenie otrzymania danych (COMPLETED, REVISED, TESTED)
+5. Zwraca dla klienta info o danym robocie (COMPLETED, REVISED, TESTED)
 """
 import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+# TODO optional - find a way to get the IP address automatically - although it might not work
 address = ("192.168.8.110", 5002)
 sock.bind(address)
 stored_data_template = {'TIMESTAMP': [], 'LIGHT': [], 'TEMP': [], 'PRESSURE': []}
@@ -104,6 +105,7 @@ if __name__ == '__main__':
                 output = str(generate_id())
         elif 'An' in request:
             print("Przeszkoda")
+            output = '1'
         else:
             output = 'Wrong input'
         # DEBUG
