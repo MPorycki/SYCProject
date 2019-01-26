@@ -10,13 +10,12 @@ import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-address = ("192.168.8.110", 5002)
+address = ("172.23.1.5", 5002)
 sock.bind(address)
 stored_data_template = {'ip': '',
                         'data': {'TIMESTAMP': [], 'LIGHT': [], 'TEMP': [], 'PRESSURE': []}}
 robot = {}
 internal_password = 'e1695548-abb9-4b79-8f24-392a1807666f'
-requests = {'1': 'LIGHT', '2': 'TEMP', '3': 'PRESSURE'}
 max_robot_id = 0
 
 
@@ -34,6 +33,8 @@ def reset_id():
 def handle_request(data):
     request = data[1]
     robot_id = data[0]
+    if int(robot_id) > max_robot_id:
+        return 'Robot o takim id nie istnieje.'
     if request == '1':
         output = get_light(robot_id)
     elif request == '2':
@@ -101,6 +102,7 @@ def get_pressure(requested_robot_id):
 def receive_data(received_data, input_robot_id):
     if input_robot_id not in robot.keys() or len(received_data) > 10:
         robot[input_robot_id] = copy.deepcopy(stored_data_template)
+        # kiedy pozyskujemy ip???
     for record in received_data:
         if len(record) > 0:
             inputs = record.split(';')
@@ -120,7 +122,7 @@ def request_base_return(robot_id):
 
 
 def request_parameter_change(robot_id, new_interval_val, new_mission_len_val):
-    request_message = 'p' + str(new_interval_val) + str(new_mission_len_val)
+    request_message = 'parameter ' + str(new_interval_val) + ' ' + str(new_mission_len_val)
     send_response(request_message, robot[robot_id]['ip'])
 
 
@@ -136,8 +138,8 @@ def send_response(message, recipient_ip):
 if __name__ == '__main__':
     print('Serwer aktywny. Nasluchuje...')
     while True:
-        request, return_address = sock.recvfrom(1024)
-        client_input = request.decode('utf-8').split(' ')
+        incoming_message, return_address = sock.recvfrom(1024)
+        client_input = incoming_message.decode('utf-8').split(' ')
         print('Received {}'.format(client_input))
         response = handle_request(client_input)
         # DEBUG
