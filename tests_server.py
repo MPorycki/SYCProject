@@ -1,5 +1,5 @@
 import serwer
-#import klientRaspberry
+import klientRaspberry
 
 test_data_entry = '19-12-2018;15:25:31;1;2;3'
 

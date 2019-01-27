@@ -18,23 +18,28 @@ Dodatkowe
 import datetime
 import socket
 
-# import serial
+import serial
 
 internal_password = 'e1695548-abb9-4b79-8f24-392a1807666f'
 stored_data = []
-# ser = serial.Serial('/dev/ttyACM0', 9600) # TODO fix AttributeError: module 'serial' has no
-# attribute 'Serial'
+ser = serial.Serial('/dev/ttyACM0', 9600)
 robot_id = None
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 server_address = ("192.168.8.110", 5002)
 address = ("192.168.8.110", 5002)
 sock.bind(address)
+sock.settimeout(1)
 
 
 def listen_to_server():
-    data, addr = sock.recvfrom(1024)
-    server_input = data.decode('utf-8')
-    return server_input
+    try:
+        data, addr = sock.recvfrom(1024)
+        server_input = data.decode('utf-8')
+        return server_input
+    except socket.timeout:
+        print('Nasluchiwanie przerwane')
+        return None
+
 
 
 def generate_id():
@@ -85,19 +90,21 @@ def send_data(send_all_data: bool):
 def send_request_to_arduino(message):
     # DEBUG without Arduino present:
     print('Wyslalem do Arduino {}'.format(message))
-    # ser.write(message)
+    ser.write(message)
 
 
 def handle_server_request(server_command):
     # form of data sent from server: parameters interval_value missionLength_value
     received_input = server_command.split(' ')
     if server_command == 'return':
-        send_request_to_arduino('r')
+        send_request_to_arduino('2')
         server_connect_and_send('Returning-to-base')
     elif server_command == 'send_all':
         send_data(send_all_data=True)
     elif received_input[0] == 'parameters':
-            send_request_to_arduino('p' + ';' + received_input[1] + ';' + received_input[2])
+            send_request_to_arduino('1')
+            send_request_to_arduino(received_input[1])
+            send_request_to_arduino(received_input[2])
             server_connect_and_send(
                 'Interval change to {} and mission length to {}'.format(received_input[1],
                                                                         received_input[2]))
@@ -112,9 +119,10 @@ def handle_obstacle():
 robot_id = generate_id()
 if __name__ == '__main__':
     while True:
-        # read_serial = ser.readline()
+        if ser.in_waiting:
+            read_serial = ser.readline()
         print("Arduino data read")
-        # input = read_serial.split(';')
+        arduino_input = read_serial.split(';')
         arduino_input = ''
         # jak nie czekac na to w nieskonczonosc?
         server_input = listen_to_server()
@@ -122,6 +130,5 @@ if __name__ == '__main__':
             handle_server_request(server_input)
         if arduino_input[0] == 'przeszkoda':
             handle_obstacle()
-        else:
-            pass
-            # receive_arduino_data(read_serial)
+        elif arduino_input is not None and arduino_input[0] != 'koniec':
+            receive_arduino_data(read_serial)

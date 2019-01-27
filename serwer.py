@@ -142,6 +142,5 @@ if __name__ == '__main__':
         client_input = incoming_message.decode('utf-8').split(' ')
         print('Received {}'.format(client_input))
         response = handle_request(client_input)
-        # DEBUG
         print("Sending {} to {}".format(response, return_address))
         send_response(response, return_address)
