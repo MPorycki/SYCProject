@@ -10,8 +10,12 @@ import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-address = ("172.23.1.5", 5002)
+address = ("192.168.0.24", 5002)
 sock.bind(address)
+sock_local = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+address_local = ("127.0.0.1", 5005)
+sock_local.bind(address_local)
+sock_local.settimeout(1)
 stored_data_template = {'ip': '',
                         'data': {'TIMESTAMP': [], 'LIGHT': [], 'TEMP': [], 'PRESSURE': []}}
 robot = {}
@@ -30,11 +34,12 @@ def reset_id():
     max_robot_id = 0
 
 
-def handle_request(data):
+def handle_request(data, ip):
     request = data[1]
     robot_id = data[0]
-    if int(robot_id) > max_robot_id:
-        return 'Robot o takim id nie istnieje.'
+    if robot_id != 'None':
+        if int(robot_id) > max_robot_id:
+            return 'Robot o takim id nie istnieje.'
     if request == '1':
         output = get_light(robot_id)
     elif request == '2':
@@ -63,7 +68,7 @@ def handle_request(data):
             output = Exception
         if internal_request == 'data':
             data_to_receive = data[3:]
-            receive_data(data_to_receive, robot_id)
+            receive_data(data_to_receive, robot_id, ip)
             output = '1'
         elif internal_request == 'generate':
             output = str(generate_id())
@@ -99,10 +104,10 @@ def get_pressure(requested_robot_id):
         return 'Robot with id {} does not exist'.format(requested_robot_id)
 
 
-def receive_data(received_data, input_robot_id):
+def receive_data(received_data, input_robot_id, ip):
     if input_robot_id not in robot.keys() or len(received_data) > 10:
         robot[input_robot_id] = copy.deepcopy(stored_data_template)
-        # kiedy pozyskujemy ip???
+        robot[input_robot_id]['ip'] = ip
     for record in received_data:
         if len(record) > 0:
             inputs = record.split(';')
@@ -132,15 +137,24 @@ def request_data_resend(robot_id):
 
 
 def send_response(message, recipient_ip):
-    sock.sendto(str.encode(message), recipient_ip)
+    try:
+        sock.sendto(str.encode(message), recipient_ip)
+    except OSError:
+        sock_local.sendto(str.encode(message), recipient_ip)
 
 
 if __name__ == '__main__':
     print('Serwer aktywny. Nasluchuje...')
     while True:
-        incoming_message, return_address = sock.recvfrom(1024)
+        try:
+            incoming_message, return_address = sock_local.recvfrom(1024)
+        except socket.timeout:
+            incoming_message, return_address = sock.recvfrom(1024)
         client_input = incoming_message.decode('utf-8').split(' ')
         print('Received {}'.format(client_input))
-        response = handle_request(client_input)
+        if 'koniec' in str(client_input):
+            print ("Robot zakonczyl prace")
+        else:
+            response = handle_request(client_input, return_address)
         print("Sending {} to {}".format(response, return_address))
         send_response(response, return_address)

@@ -1,8 +1,8 @@
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-server_address = ("172.23.1.5", 5002)
-address = ("127.0.0.1", 5002)
+server_address = ("127.0.0.1", 5005)
+address = ("127.0.0.1", 5003)
 sock.bind(address)
 possible_requests = {'1': 'getLight', '2': 'getTemperature', '3': 'getPressure', '4': 'baseReturn',
                      '5': 'parameterChange', '6': 'resendData'}
@@ -25,7 +25,7 @@ if __name__ == '__main__':
             "ponowne wyslanie wszystkich pomiarow robota do stacji bazowej\n")
         request = var.split(' ')
         if request[1] in possible_requests.keys():
-            sock.sendto(str.encode(var), address)
+            sock.sendto(str.encode(var), server_address)
             print('Wyslano polecenie {} do robota o id {}. Oczekiwanie na odpowiedz...'.format(
                 possible_requests[request[1]], request[0]))
             response = listen_to_server()
