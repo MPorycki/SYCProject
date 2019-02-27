@@ -10,8 +10,9 @@ import copy
 import socket
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-address = ("192.168.0.24", 5002)
+address = ("192.168.43.112", 5002)
 sock.bind(address)
+sock.settimeout(1)
 sock_local = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 address_local = ("127.0.0.1", 5005)
 sock_local.bind(address_local)
@@ -111,10 +112,10 @@ def receive_data(received_data, input_robot_id, ip):
     for record in received_data:
         if len(record) > 0:
             inputs = record.split(';')
-            timestamp = inputs[0] + ' ' + inputs[1]
-            light = inputs[2]
-            temp = inputs[3]
-            pressure = inputs[4]
+            timestamp = inputs[0]
+            light = inputs[1]
+            temp = inputs[2]
+            pressure = inputs[3]
             robot[input_robot_id]['data']['TIMESTAMP'].append(timestamp)
             robot[input_robot_id]['data']['LIGHT'].append(light)
             robot[input_robot_id]['data']['TEMP'].append(temp)
@@ -146,15 +147,21 @@ def send_response(message, recipient_ip):
 if __name__ == '__main__':
     print('Serwer aktywny. Nasluchuje...')
     while True:
+        incoming_message = ''
+        client_input = ''
         try:
             incoming_message, return_address = sock_local.recvfrom(1024)
         except socket.timeout:
-            incoming_message, return_address = sock.recvfrom(1024)
-        client_input = incoming_message.decode('utf-8').split(' ')
-        print('Received {}'.format(client_input))
-        if 'koniec' in str(client_input):
-            print ("Robot zakonczyl prace")
-        else:
-            response = handle_request(client_input, return_address)
-        print("Sending {} to {}".format(response, return_address))
-        send_response(response, return_address)
+            try:
+                incoming_message, return_address = sock.recvfrom(4096)
+            except socket.timeout:
+                print('Brak nowych wiadomosci')
+        if incoming_message != '':
+            client_input = incoming_message.decode('utf-8').split(' ')
+            print('Received {}'.format(client_input))
+            if 'koniec' in str(client_input):
+                print("Robot zakonczyl prace")
+            else:
+                response = handle_request(client_input, return_address)
+            print("Sending {} to {}".format(response, return_address))
+            send_response(response, return_address)
